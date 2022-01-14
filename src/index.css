@@ -1,3 +1,12 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: 'Belwe';
+  src: local('Belwe'), url(./fonts/Belwe-Medium.otf) format('opentype');
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
