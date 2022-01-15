@@ -2,6 +2,7 @@ import {StandardCards, WildCards, ClassicCards} from './/data'
 import {mode, state, status, set, type} from './constants'
 import {useLocalStorage} from './hooks/useLocalStorage'
 import {useEffect, useState} from 'react'
+import { AutoSuggest } from 'react-autosuggestions';
 import Guess from './components/guess'
 
 function App() {
@@ -9,7 +10,7 @@ function App() {
   const cardSetMap = { [set.standard]: StandardCards, [set.wild]: WildCards, [set.classic]: ClassicCards }
 
   const [gameMode, setGameMode] = useState(mode.infinite)
-  const [cardSet, setCardSet] = useState(set.classic)
+  const [cardSet, setCardSet] = useState(set.standard)
   const [cards, setCards] = useState(cardSetMap[cardSet])
   const [gameLength, setGameLength] = useState(gameLengthMap[cardSet])
 
@@ -60,10 +61,11 @@ function App() {
 
   const getSearchedCard = () => cards.filter(c => c.name === currentGuessText)
 
+
   return (
     <div className = "bg-stone-800 text-stone-50 font-display text-center h-screen flex flex-col items-center">
       <p className = "text-5xl pt-3">CARDLE</p>
-      <div className = "pt-3 w-100 text-xl md:w-4/6 lg:w-3/6 2xl:w-2/6">
+      <div className = "pt-3 w-100 text-xl lg:text-2xl md:w-4/6 lg:w-3/6 2xl:w-2/6">
         <div className='grid grid-cols-6 gap-2 md:gap-4'>
           <div>Set</div>
           <div>Class</div>
@@ -76,8 +78,15 @@ function App() {
           <Guess guess={guess} key={guesses.indexOf(guess) + "_guess"} index={guesses.indexOf(guess)}/>
         ))}
         <form onSubmit={e => handleSubmit(e)}>
-          <input className = 'text-black mr-4 p-1' value = {currentGuessText} onChange = {e => setCurrentGuessText(e.target.value)}></input>
-          <input className = "border-2 border-white px-1" type="submit" value="SUBMIT"></input>
+          <div className = "flex flex-row">
+            <AutoSuggest name="Card" options={cards.map(o => o.name)} value = {currentGuessText} handleChange = {setCurrentGuessText}
+              styles={{
+                searchLabel: {display:"none"},
+                suggestionsContainer: {color: "black"}
+              }}
+            />
+            <input className = "border-2 border-white px-1" type="submit" value="SUBMIT"></input>
+          </div>
         </form>
       </div>
     </div>
