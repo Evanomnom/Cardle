@@ -1,11 +1,13 @@
 import {StandardCards, WildCards, ClassicCards, WildLegendaryCards} from './/data'
-import {mode, state, status, set, type} from './constants'
+import {mode, state, status, set, type, imageArray} from './constants'
 import {useLocalStorage} from './hooks/useLocalStorage'
 import {useEffect, useState} from 'react'
 import { AutoSuggest } from 'react-autosuggestions'
 import Guess from './components/guess'
 import Modal from 'react-modal'
 import {SettingsModal} from './components/settingsModal'
+import {GameOverModal} from "./components/gameOverModal"
+import PreCacheImg from 'react-precache-img';
 import { Switch, RadioGroup } from '@headlessui/react'
 
 function App() {
@@ -22,24 +24,29 @@ function App() {
     return cards[rndI]
   }
   
-  const [gameState, setGameState] = useState(state.playing)
-  const [guesses, setGuesses] = useState([])
+  const [gameState, setGameState] = useState({[gameMode + cardSet]:state.playing})
+  const [guesses, setGuesses] = useState({ [gameMode + cardSet]:[]})
+  const [cardAnswer, setCardAnswer] = useState({ [gameMode + cardSet]:getCard()})
+  const [cardGuess, setCardGuess] = useState({ [gameMode + cardSet]:{}})
+  
   const [currentGuessText, setCurrentGuessText] = useState("")
-  const [cardAnswer, setCardAnswer] = useState(getCard())
-  const [settingsModalIsOpen, setSettingsModalIsOpen] = useState(false)
   const [settingsChanged, setSettingsChanged] = useState(false)
+  const [settingsModalIsOpen, setSettingsModalIsOpen] = useState(false)
+  const [gameOverModalIsOpen, setGameOverModalIsOpen] = useState(false)
+  const [guessesRemaining, setGuessesRemaining] = useState(gameLength)
 
-  const addGuess = (cardGuess) => {
+  const addGuess = () => {
+    let currCardGuess = cardGuess[gameMode + cardSet]
+    let currCardAnswer = cardAnswer[gameMode + cardSet]
     let newGuess = [
-      {type: type.set, value: cardGuess.set, status: getAboveBelowStatus(cardGuess.set, cardAnswer.set)},
-      {type: type.class, value: cardGuess.cardClass, status: (cardGuess.cardClass === cardAnswer.cardClass) ? status.correct : status.incorrect},
-      {type: type.rarity, value: cardGuess.rarity, status: getAboveBelowStatus(cardGuess.rarity, cardAnswer.rarity)},
-      {type: type.cost, value: cardGuess.cost, status: getAboveBelowStatus(cardGuess.cost, cardAnswer.cost)},
-      {type: type.attack, value: cardGuess.attack, status: getAboveBelowStatus(cardGuess.attack, cardAnswer.attack)},
-      {type: type.health, value: cardGuess.health, status: getAboveBelowStatus(cardGuess.health, cardAnswer.health)},
+      {type: type.set, value: currCardGuess.set, status: getAboveBelowStatus(currCardGuess.set, currCardAnswer.set)},
+      {type: type.class, value: currCardGuess.cardClass, status: (currCardGuess.cardClass === currCardAnswer.cardClass) ? status.correct : status.incorrect},
+      {type: type.rarity, value: currCardGuess.rarity, status: getAboveBelowStatus(currCardGuess.rarity, currCardAnswer.rarity)},
+      {type: type.cost, value: currCardGuess.cost, status: getAboveBelowStatus(currCardGuess.cost, currCardAnswer.cost)},
+      {type: type.attack, value: currCardGuess.attack, status: getAboveBelowStatus(currCardGuess.attack, currCardAnswer.attack)},
+      {type: type.health, value: currCardGuess.health, status: getAboveBelowStatus(currCardGuess.health, currCardAnswer.health)},
     ]
-    setGuesses(arr => [...arr, newGuess])
-    console.log(guesses)
+    setGuesses(prevState => ({...prevState, [gameMode + cardSet]: [...prevState[gameMode+cardSet], newGuess]}))
   }
 
   const getAboveBelowStatus = (guessValue, answerValue) => {
@@ -56,13 +63,16 @@ function App() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log(cardAnswer)
     let searchedCardArr = getSearchedCard();
     if (searchedCardArr.length > 0){
-      addGuess(searchedCardArr[0])
+      setCardGuess(prevState => ({...prevState, [gameMode + cardSet]: getSearchedCard()[0]}))
+      if (cardsEqual(cardGuess, getSearchedCard()[0])) {
+        addGuess()
+      }
     } else {
 
     }
+    setCurrentGuessText("")
   }
 
   const changeGameMode = (gameMode) => {
@@ -76,9 +86,35 @@ function App() {
   }
 
   useEffect(() => {
-    setCardAnswer(getCard());
-    console.log()
+    setCardAnswer(prevState => ({...prevState, [gameMode + cardSet]: getCard()}));
   }, [cards]);
+
+  useEffect(() => {
+    checkGameOver();
+    console.log(guesses);
+    if ([gameMode + cardSet] in guesses) {
+      setGuessesRemaining(gameLength - guesses[gameMode + cardSet].length);
+    } else {
+      setGuessesRemaining(gameLength);
+    }
+  }, [guesses]);
+
+  useEffect(() => {
+    if ([gameMode + cardSet] in cardGuess) {
+      if (Object.keys(cardGuess[gameMode + cardSet]).length > 0) {
+        console.log(cardGuess[gameMode + cardSet])
+        addGuess()
+      }
+    }
+  }, [cardGuess])
+
+  useEffect(() => {
+    if (gameState[gameMode + cardSet] === state.won || gameState[gameMode + cardSet] === state.lost){
+      setTimeout(() => {
+        setGameOverModalIsOpen(true);
+      }, 750)
+    }
+  }, [gameState])
 
   const setupGame = () => {
     console.log(settingsChanged)
@@ -87,19 +123,50 @@ function App() {
       console.log(cardSet);
       setCards(cardSetMap[cardSet]);
       setGameLength(gameLengthMap[cardSet]);
-      setGameState(state.playing);
+      setGameState(prevState => ({ ...prevState, [gameMode + cardSet]: state.playing}));
+      setGuesses(prevState => ({ ...prevState, [gameMode + cardSet]: [] }))
+      setCardGuess(prevState => ({ ...prevState, [gameMode + cardSet]: [] }));
       setCurrentGuessText("");
-      setGuesses([]);
       setSettingsChanged(false);
+    }
+  }
+
+  const resetGame = () => {
+    setCardAnswer(prevState => ({ ...prevState, [gameMode + cardSet]: getCard() }));
+    setGameState(prevState => ({ ...prevState, [gameMode + cardSet]: state.playing }));
+    setGuesses(prevState => ({ ...prevState, [gameMode + cardSet]: [] }))
+    setCardGuess(prevState => ({ ...prevState, [gameMode + cardSet]: [] }));
+    setCurrentGuessText("");
+    setSettingsChanged(false);
+  }
+
+  const checkGameOver = () => {
+    if ([gameMode + cardSet] in guesses && [gameMode + cardSet] in cardGuess && [gameMode + cardSet] in cardAnswer){
+      if (cardsEqual(cardGuess[gameMode + cardSet], cardAnswer[gameMode + cardSet])) {
+        console.log("win");
+        setGameState(prevState => ({ ...prevState, [gameMode + cardSet]: state.won }));
+      } else if ((gameLength - guesses[gameMode + cardSet].length) === 0) {
+        console.log("loss");
+        setGameState(prevState => ({ ...prevState, [gameMode + cardSet]: state.lost }));
+      }
     }
   }
 
   const handleSettingsModalClose = () => {
     setupGame();
-    setSettingsModalIsOpen(false)
+    setSettingsModalIsOpen(false);
+  }
+
+  const handleGameOverModalClose = () => {
+    setGameOverModalIsOpen(false);
+    resetGame();
   }
 
   const getSearchedCard = () => cards.filter(c => c.name === currentGuessText)
+
+  const cardsEqual = (c1, c2) => {
+    return ((c1.set === c2.set) && (c1.class === c2.class) && (c1.rarity === c2.rarity) && (c1.cost === c2.cost) && (c1.health === c2.health) && (c1.attack === c2.attack))
+  }
 
   const modalStyles = {
     overlay: {
@@ -139,7 +206,7 @@ function App() {
           <div className="text-5xl">CARDLE</div>
           <div className="w-12"><img src="/icons/info.png" className="icon" /></div>
         </div>
-        <div className= "pt-3 px-2 w-full text-xl lg:text-2xl md:w-4/6 lg:w-3/6 2xl:w-2/6">
+        <div className= "pt-3 w-full px-2 text-xl lg:text-2xl md:w-4/6 lg:w-3/6 2xl:w-2/6">
           <div className='grid grid-cols-6 gap-2 md:gap-4'>
             <div>Set</div>
             <div>Class</div>
@@ -148,20 +215,22 @@ function App() {
             <div>Attack</div>
             <div>Health</div>
           </div>
-          {guesses.length > 0 && guesses.map(guess=>(
-            <Guess guess={guess} key={guesses.indexOf(guess) + "_guess"} index={guesses.indexOf(guess)}/>
+          {([gameMode + cardSet] in guesses && guesses[gameMode + cardSet].length) > 0 && guesses[gameMode + cardSet].map(guess=>(
+            <Guess guess={guess} key={guesses[gameMode + cardSet].indexOf(guess) + "_guess"} index={guesses[gameMode + cardSet].indexOf(guess)}/>
           ))}
-          <form onSubmit={e => handleSubmit(e)}>
+          <form onSubmit={e => handleSubmit(e)} className={"p-0 m-0"}>
             <div className = "flex flex-row items-start justify-center pt-5">
               <div>
                 <AutoSuggest name="Card" options={cards.map(o => o.name)} value = {currentGuessText} handleChange = {setCurrentGuessText}
                   styles={{
+                    announcement: {display: "none"},
                     searchLabel: {display:"none"},
+                    searchField: {width:"100%"},
                     suggestionsContainer: { color: "black", position: "static"}
                   }}
                 />
               </div>
-              <input className = "border-2 border-white rounded-md p-2 ml-4" type="submit" value="SUBMIT"></input>
+              <input className= "bg-blue-500 hover:bg-blue-400 transition-colors rounded-md px-4 py-2.5 text-stone-50 focus:ring-2 ring-blue-500 ml-3" type="submit" value="SUBMIT"></input>
             </div>
           </form>
         </div>
@@ -175,6 +244,20 @@ function App() {
           changeCardSet={changeCardSet}
           changeGameMode={changeGameMode}
         />
+      <GameOverModal
+        isOpen={gameOverModalIsOpen}
+        handleClose={handleGameOverModalClose}
+        styles={modalStyles}
+        gameMode={gameMode}
+        cardSet={cardSet}
+        gameState={gameState[gameMode + cardSet]}
+        cardAnswer={cardAnswer[gameMode + cardSet]}
+        guesses={guesses[gameMode + cardSet]}
+        newGame={handleGameOverModalClose}
+      />
+      <PreCacheImg
+        images={imageArray}
+      />
     </div>
   );
 }
