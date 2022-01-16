@@ -4,8 +4,7 @@
 
 @font-face {
   font-family: 'Belwe';
-  src: local('Belwe'), url(./fonts/belwe-medium-webfont.woff) format('woff');
-  src: local('Belwe'), url(./fonts/belwe-medium-webfont.woff2) format('woff2');
+  src: local('Belwe'), url(./fonts/BelweMediumBT.ttf) format('ttf');
 }
 
 body {
