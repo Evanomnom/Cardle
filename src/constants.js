@@ -3,11 +3,16 @@ export const mode = {
     infinite: "Infinite"
 }
 
+export const modeArray = [mode.daily, mode.infinite]
+
 export const set = {
     standard: "Standard",
+    wildlegend: "Wild Legendaries",
     wild: "Wild",
     classic: "Classic"
 }
+
+export const setArray = [set.standard, set.wild, set.classic, set.wildlegend]
 
 export const state = {
     playing: "playing",

@@ -4,7 +4,8 @@
 
 @font-face {
   font-family: 'Belwe';
-  src: local('Belwe'), url(./fonts/Belwe-Medium.otf) format('opentype');
+  src: local('Belwe'), url(./fonts/belwe-medium-webfont.woff) format('woff');
+  src: local('Belwe'), url(./fonts/belwe-medium-webfont.woff2) format('woff2');
 }
 
 body {
@@ -20,3 +21,9 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.icon{
+  filter: brightness(0) saturate(100%) invert(100%) sepia(98%) saturate(0%) hue-rotate(347deg) brightness(103%) contrast(104%);
+}
+
+.clr{clear:both;}
