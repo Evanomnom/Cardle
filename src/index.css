@@ -3,8 +3,9 @@
 @tailwind utilities;
 
 @font-face {
-  font-family: 'Belwe';
-  src: local('Belwe'), url(./fonts/BelweMediumBT.ttf) format('ttf');
+	font-family: 'Belwe';
+	src: url('./fonts/TT1023M.eot');
+	src: local('TT1023M'), url('./fonts/TT1023M.woff') format('woff'), url('./fonts/TT1023M.ttf') format('truetype');
 }
 
 body {
