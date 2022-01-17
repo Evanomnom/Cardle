@@ -1,4 +1,5 @@
-import {mode, state, status, set, type, imageArray, initialDates, initialStats, cards, gameLength} from './constants'
+import {mode, state, status, set, type, imageArray, initialDates, initialStats, initialStates, 
+  initialAnswers, initialCardGuesses, initialGuesses, cards, gameLength} from './constants'
 import {useLocalStorage} from './hooks/useLocalStorage'
 import useDidMountEffect from './hooks/useDidMountEffect'
 import {useEffect, useState} from 'react'
@@ -13,18 +14,25 @@ function App() {
   const [gameMode, setGameMode] = useLocalStorage('stateGameMode', mode.infinite)
   const [cardSet, setCardSet] = useLocalStorage('stateCardSet', set.standard)
   
-  const [gameState, setGameState] = useLocalStorage('stateGameState', {[gameMode + cardSet]:state.playing})
-  const [guesses, setGuesses] = useLocalStorage('stateGuesses', [])
-  const [cardAnswer, setCardAnswer] = useLocalStorage('stateCardAnswer', {})
-  const [cardGuess, setCardGuess] = useLocalStorage('stateCardGuess', {})
+  const [gameState, setGameState] = useLocalStorage('stateGameState', initialStates)
+  const [guesses, setGuesses] = useLocalStorage('stateGuesses', initialGuesses)
+  const [cardAnswer, setCardAnswer] = useLocalStorage('stateCardAnswer', initialAnswers)
+  const [cardGuess, setCardGuess] = useLocalStorage('stateCardGuess', initialCardGuesses)
   const [dailyDates, setDailyDates] = useLocalStorage('stateDailyDates', initialDates)
-  const [stats, setStats] = useLocalStorage('stateStats', {[gameMode+cardSet]:initialStats})
+  const [stats, setStats] = useLocalStorage('stateStats', initialStats)
 
   const [currentGuessText, setCurrentGuessText] = useState("")
   const [settingsChanged, setSettingsChanged] = useState(false)
   const [settingsModalIsOpen, setSettingsModalIsOpen] = useState(false)
   const [gameOverModalIsOpen, setGameOverModalIsOpen] = useState(false)
   const [guessesRemaining, setGuessesRemaining] = useState(gameLength[cardSet])
+  const [showAlert, setShowAlert] = useState(false)
+
+  useEffect(() => {
+    if (showAlert) {
+      setTimeout(() => setShowAlert(false), 3000)
+    }
+  }, [showAlert])
 
   const getCard = (set) => {
     const rndI = Math.floor(Math.random() * cards[set].length)
@@ -70,7 +78,6 @@ function App() {
   const handleSubmit = (e) => {
     e.preventDefault();
     let searchedCardArr = getSearchedCard();
-    console.log(cardAnswer[gameMode + cardSet])
     if (searchedCardArr.length > 0){
       setCardGuess(prevState => ({...prevState, [gameMode + cardSet]: getSearchedCard()[0]}));
       if (cardsEqual(cardGuess, getSearchedCard()[0])) {
@@ -92,23 +99,15 @@ function App() {
     setSettingsChanged(true);
   }
 
+  const setDaily = () => {
+    setCardAnswer(prevState => ({ ...prevState, [gameMode + cardSet]: getDailyCard(cardSet) }));
+    setGameState(prevState => ({ ...prevState, [gameMode + cardSet]: state.playing }));
+    setGuesses(prevState => ({ ...prevState, [gameMode + cardSet]: [] }));
+    setCardGuess(prevState => ({ ...prevState, [gameMode + cardSet]: [] }));
+    setCurrentGuessText("");
+  }
+
   useEffect(() => { 
-    if (!([gameMode + cardSet] in cardGuess)){
-      if (gameMode === mode.infinite) {
-        setCardAnswer(prevState => ({...prevState, [gameMode + cardSet]: getCard(cardSet)}));
-      } else if (gameMode === mode.daily) {
-        setCardAnswer(prevState => ({ ...prevState, [gameMode + cardSet]: getDailyCard(cardSet) }));
-      }
-    }
-
-    if (!([gameMode + cardSet] in gameState)) {
-      setGameState(prevState => ({ ...prevState, [gameMode + cardSet]: state.playing }));
-    }
-
-    if (!([gameMode + cardSet] in stats)) {
-      setStats(prevState => ({ ...prevState, [gameMode + cardSet]: initialStats }))
-    }
-
     let today = new Date();
     let dailyDate = new Date(dailyDates[cardSet]);
     if (dailyDate instanceof Date && gameMode === mode.daily) {
@@ -129,8 +128,11 @@ function App() {
   }, [guesses, cardSet, gameMode]);
 
   useDidMountEffect(() => {
-    checkGameOver();
-  }, [guesses]);
+    console.log(gameState[gameMode+cardSet])
+    if (gameState[gameMode+cardSet] === state.playing){
+      checkGameOver();
+    }
+  }, [guesses, cardSet, gameMode]);
 
   useDidMountEffect(() => {
     if ([gameMode + cardSet] in cardGuess) {
@@ -155,14 +157,6 @@ function App() {
     }
   }
 
-  const setDaily = () => {
-    setCardAnswer(prevState => ({ ...prevState, [gameMode + cardSet]: getDailyCard(cardSet) }));
-    setGameState(prevState => ({ ...prevState, [gameMode + cardSet]: state.playing }));
-    setGuesses(prevState => ({ ...prevState, [gameMode + cardSet]: [] }));
-    setCardGuess(prevState => ({ ...prevState, [gameMode + cardSet]: [] }));
-    setCurrentGuessText("");
-  }
-
   const resetGame = () => {
     if (gameMode !== mode.daily){
       setCardAnswer(prevState => ({ ...prevState, [gameMode + cardSet]: getCard(cardSet) }));
@@ -180,7 +174,7 @@ function App() {
         let today = new Date();
         setDailyDates(prevState => ({ ...prevState, [cardSet]: today}));
       }
-
+      
       if (cardsEqual(cardGuess[gameMode + cardSet], cardAnswer[gameMode + cardSet])) {
         setStats(prevState => {
           var stat = {...prevState};
@@ -257,13 +251,14 @@ function App() {
           <div className="text-3xl xl:text-4xl">CARDLE</div>
           <div className="w-9 mr-2"><img src="/icons/info.png" className="icon" /></div>
         </div>
-        <div className="grid grid-cols-3 pt-3 gap-6 md:gap-12 text-lg">
-          <span>Set: {cardSet}</span>
-          <span>Mode: {gameMode}</span>
-          <span>Guesses: {guessesRemaining}</span>
+        <div className="grid grid-cols-3 pt-3 gap-4">
+          <div className="flex flex-col items-center justify-start text-center"><div className="text-xl xl:text-2xl">Set</div><div className="text-lg xl:text-xl">{cardSet}</div></div>
+          <div className="flex flex-col items-center justify-start text-center"><div className="text-xl xl:text-2xl">Mode</div><div className="text-lg xl:text-xl">{gameMode}</div></div>
+          <div className="flex flex-col items-center justify-start text-center"><div className="text-xl xl:text-2xl">Guesses</div><div className="text-lg xl:text-xl">{guessesRemaining}</div></div>
         </div>
-        <div className= "pt-3 w-full px-2 text-xl lg:text-2xl md:w-4/6 lg:w-3/6 2xl:w-2/6">
-          <div className='grid grid-cols-6 gap-2 md:gap-4'>
+        {showAlert && <div className="text-lg my-2">Copied to Clipboard!</div>}
+        <div className= "pt-3 w-full px-2 text-lg lg:text-2xl md:w-4/6 lg:w-3/6 2xl:w-2/6">
+          <div className='grid grid-cols-6'>
             <div>Set</div>
             <div>Class</div>
             <div>Rarity</div>
@@ -277,7 +272,7 @@ function App() {
           {(gameState[gameMode + cardSet] === state.playing) &&
             <form onSubmit={e => handleSubmit(e)} className={"p-0 m-0"}>
               <div className = "flex flex-row items-start justify-center pt-5">
-                <div className = "min-w-4/6 flex flex-row justify-start">
+                <div className = "w-4/6 flex flex-row">
                   <AutoSuggest name="Card" options={cards[cardSet].map(o => o.name)} value = {currentGuessText} handleChange = {setCurrentGuessText}
                     styles={{
                       announcement: {display: "none"},
@@ -289,7 +284,9 @@ function App() {
                     }}
                   />
                 </div>
-                <input className= "bg-blue-500 hover:bg-blue-400 transition-colors rounded-md px-4 py-2.5 text-stone-50 focus:ring-2 ring-blue-500 ml-3" type="submit" value="SUBMIT"></input>
+                <div className="w-15 flex flex-row justify-start">
+                  <input className= "bg-blue-500 hover:bg-blue-400 transition-colors rounded-md px-4 py-2.5 text-stone-50 focus:ring-2 ring-blue-500 mx-1" type="submit" value="SUBMIT"></input>
+                </div>
               </div>
             </form>
             }

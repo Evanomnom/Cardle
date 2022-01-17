@@ -21,18 +21,25 @@ export const GameOverModal = ({ isOpen, handleClose, styles, gameState, gameMode
         let titleGuessedNum = (gameState === state.won) ? guesses.length : "X"
         titleGuessedNum += "/" + gameLength
 
-        let title = "Cardle " + gameMode + " " + cardSet;
+        let title = "Cardle " + cardSet;
+        if (gameMode === mode.daily) {
+            var today = new Date();
+            var dd = String(today.getDate()).padStart(2, '0');
+            var mm = String(today.getMonth() + 1).padStart(2, '0');
+            title += " " + mm + '-' + dd
+        } else {
+            title += " Infinite"
+        }
+
         title += " " + titleGuessedNum;
         title += "\n\n"
         let shareText = ""
         guesses.forEach(guess => {
             guess.forEach(elem => {
                 shareText += emojiMap[elem.status]
-                console.log(emojiMap[elem.status]) 
             });
             shareText += "\n"
         });
-        console.log(shareText)
         if (navigator.canShare && isMobile) {
             navigator.share({
                 text: title + shareText
