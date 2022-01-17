@@ -1,3 +1,5 @@
+import { StandardCards, WildCards, ClassicCards, WildLegendaryCards } from './/data'
+
 export const mode = {
     daily: "Daily",
     infinite: "Infinite"
@@ -12,7 +14,12 @@ export const set = {
     classic: "Classic"
 }
 
-export const setArray = [set.standard, set.wild, set.classic, set.wildlegend]
+let setArr = [set.standard, set.wild, set.classic, set.wildlegend]
+export const setArray = setArr
+
+let initDates = {}
+setArr.forEach(elem => initDates[elem] = new Date('August 19, 1975 23:15:30'));
+export const initialDates = initDates;
 
 export const state = {
     playing: "playing",
@@ -35,6 +42,12 @@ export const type = {
     attack: "Attack",
     health: "Health"
 }
+
+
+export const gameLength = { [set.standard]: 7, [set.wild]: 9, [set.classic]: 5, [set.wildlegend]: 7 }
+export const cards = { [set.standard]: StandardCards, [set.wild]: WildCards, [set.classic]: ClassicCards, [set.wildlegend]: WildLegendaryCards }
+export const initialStats = { "played": 0, "won": 0, "currStreak": 0, "maxStreak": 0 }
+
 
 const imgArr = []
 const classes = ["Neutral", "DemonHunter", "Druid", "Hunter", "Mage", "Neutral", "Paladin", "Priest", "Rogue", "Shaman"]
