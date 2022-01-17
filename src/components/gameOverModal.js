@@ -60,7 +60,7 @@ export const GameOverModal = ({ isOpen, handleClose, styles, gameState, gameMode
             <div className="h-full flex flex-col text-center items-center justify-between max-w-[390px] mx-auto text-stone-50">
                 <div className="w-full">
                     <button className="float-right text-2xl border border-stone-50 px-2 rounded-full" onClick={handleClose}>X</button>
-                    <img src={(gameState === state.won) ? "/victory.png" : "/defeat.png"} className={"pt-4"} />
+                    <img src={(gameState === state.won) ? "/end/victory.png" : "/end/defeat.png"} className={"pt-4"} />
                 </div>
                 
                 {gameState === state.lost && (

@@ -27,7 +27,7 @@ export const set = {
 
 export const setArray = [set.standard, set.wild, set.classic, set.wildlegend]
 
-export const gameLength = { [set.standard]: 7, [set.wild]: 9, [set.classic]: 5, [set.wildlegend]: 7 }
+export const gameLength = { [set.standard]: 7, [set.wild]: 10, [set.classic]: 5, [set.wildlegend]: 7 }
 export const cards = { [set.standard]: StandardCards, [set.wild]: WildCards, [set.classic]: ClassicCards, [set.wildlegend]: WildLegendaryCards }
 
 export const state = {
@@ -107,8 +107,8 @@ for (let i = -1; i < 25; i++) {
     imgArr.push("/sets/" + i + ".png");
 }
 
-imgArr.push("/victory.png")
-imgArr.push("/defeat.png")
+imgArr.push("/end/victory.png")
+imgArr.push("/end/defeat.png")
 
 export const imageArray = imgArr
 

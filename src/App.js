@@ -8,6 +8,7 @@ import Guess from './components/guess'
 import Modal from 'react-modal'
 import {SettingsModal} from './components/settingsModal'
 import {GameOverModal} from "./components/gameOverModal"
+import {InfoModal} from "./components/infoModal"
 import PreCacheImg from 'react-precache-img';
 
 function App() {
@@ -25,6 +26,7 @@ function App() {
   const [settingsChanged, setSettingsChanged] = useState(false)
   const [settingsModalIsOpen, setSettingsModalIsOpen] = useState(false)
   const [gameOverModalIsOpen, setGameOverModalIsOpen] = useState(false)
+  const [infoModalIsOpen, setInfoModalIsOpen] = useState(false)
   const [guessesRemaining, setGuessesRemaining] = useState(gameLength[cardSet])
   const [showAlert, setShowAlert] = useState(false)
 
@@ -78,13 +80,14 @@ function App() {
   const handleSubmit = (e) => {
     e.preventDefault();
     let searchedCardArr = getSearchedCard();
-    if (searchedCardArr.length > 0){
+    if ((searchedCardArr.length > 0) && (gameState[gameMode + cardSet] === state.playing)){
+      setShowAlert(false)
       setCardGuess(prevState => ({...prevState, [gameMode + cardSet]: getSearchedCard()[0]}));
       if (cardsEqual(cardGuess, getSearchedCard()[0])) {
         addGuess()
       }
     } else {
-
+      setShowAlert(true)
     }
     setCurrentGuessText("")
   }
@@ -111,12 +114,10 @@ function App() {
     let today = new Date();
     let dailyDate = new Date(dailyDates[cardSet]);
     if (dailyDate instanceof Date && gameMode === mode.daily) {
-      if ((today.getFullYear() > dailyDate.getFullYear()) || (today.getMonth() > dailyDate.getMonth()) || (today.getDate() > dailyDate.getDate()) || (today.getHours() > dailyDate.getHours()) || (today.getMinutes() > (dailyDate.getMinutes()+1))) {
+      if ((today.getFullYear() > dailyDate.getFullYear()) || (today.getMonth() > dailyDate.getMonth()) || (today.getDate() > dailyDate.getDate())) {
         setDaily(cardSet);
       }
     }
-
-    console.log(cardAnswer[gameMode+cardSet]);
   }, [cardSet, gameMode]);
 
   useEffect(() => {
@@ -128,7 +129,6 @@ function App() {
   }, [guesses, cardSet, gameMode]);
 
   useDidMountEffect(() => {
-    console.log(gameState[gameMode+cardSet])
     if (gameState[gameMode+cardSet] === state.playing){
       checkGameOver();
     }
@@ -136,8 +136,8 @@ function App() {
 
   useDidMountEffect(() => {
     if ([gameMode + cardSet] in cardGuess) {
-      if (Object.keys(cardGuess[gameMode + cardSet]).length > 0) {
-        addGuess()
+      if ((Object.keys(cardGuess[gameMode + cardSet]).length > 0) && (gameState[gameMode + cardSet] === state.playing)) {
+          addGuess()
       }
     }
   }, [cardGuess])
@@ -246,33 +246,37 @@ function App() {
   return (
     <div>
       <div className = "bg-stone-800 text-stone-50 font-display text-center flex flex-col min-h-screen items-center">
-        <div className="flex flex-row align-center justify-between px-2 pt-3 w-full text-xl lg:text-2xl lg:w-4/6 2xl:w-2/6">
+        <div className="flex flex-row align-center justify-between px-1 pt-3 w-full text-xl lg:text-2xl lg:w-4/6 2xl:w-2/6">
           <div className="w-9 ml-2"><img src="/icons/menu.png" className="icon" onClick={()=>(setSettingsModalIsOpen(true))}/></div>
           <div className="text-3xl xl:text-4xl">CARDLE</div>
-          <div className="w-9 mr-2"><img src="/icons/info.png" className="icon" /></div>
+          <div className="w-9 mr-2"><img src="/icons/info.png" className="icon" onClick={() => (setInfoModalIsOpen(true))}/></div>
         </div>
-        <div className="grid grid-cols-3 pt-3 gap-4">
+        <div className="text-md">Guess the Hearthstone minion!</div>
+        <div className="grid grid-cols-3 pt-2 gap-4">
           <div className="flex flex-col items-center justify-start text-center"><div className="text-xl xl:text-2xl">Set</div><div className="text-lg xl:text-xl">{cardSet}</div></div>
           <div className="flex flex-col items-center justify-start text-center"><div className="text-xl xl:text-2xl">Mode</div><div className="text-lg xl:text-xl">{gameMode}</div></div>
           <div className="flex flex-col items-center justify-start text-center"><div className="text-xl xl:text-2xl">Guesses</div><div className="text-lg xl:text-xl">{guessesRemaining}</div></div>
         </div>
-        {showAlert && <div className="text-lg my-2">Copied to Clipboard!</div>}
+        {showAlert && <div className="text-lg my-2">No Minion Found!</div>}
         <div className= "pt-3 w-full px-2 text-lg lg:text-2xl md:w-4/6 lg:w-3/6 2xl:w-2/6">
-          <div className='grid grid-cols-6'>
-            <div>Set</div>
-            <div>Class</div>
-            <div>Rarity</div>
-            <div>Mana</div>
-            <div>Attack</div>
-            <div>Health</div>
-          </div>
-          {([gameMode + cardSet] in guesses && guesses[gameMode + cardSet].length) > 0 && guesses[gameMode + cardSet].map(guess=>(
+          {([gameMode + cardSet] in guesses && guesses[gameMode + cardSet].length > 0) &&
+            <div className='grid grid-cols-6'>
+              <div>Set</div>
+              <div>Class</div>
+              <div>Rarity</div>
+              <div>Mana</div>
+              <div>Attack</div>
+              <div>Health</div>
+            </div>
+            }
+          {([gameMode + cardSet] in guesses && guesses[gameMode + cardSet].length > 0) && 
+            guesses[gameMode + cardSet].map(guess=>(
             <Guess guess={guess} key={guesses[gameMode + cardSet].indexOf(guess) + "_guess"} index={guesses[gameMode + cardSet].indexOf(guess)}/>
           ))}
           {(gameState[gameMode + cardSet] === state.playing) &&
             <form onSubmit={e => handleSubmit(e)} className={"p-0 m-0"}>
               <div className = "flex flex-row items-start justify-center pt-5">
-                <div className = "w-4/6 flex flex-row">
+                <div className = "w-full flex flex-row">
                   <AutoSuggest name="Card" options={cards[cardSet].map(o => o.name)} value = {currentGuessText} handleChange = {setCurrentGuessText}
                     styles={{
                       announcement: {display: "none"},
@@ -284,7 +288,7 @@ function App() {
                     }}
                   />
                 </div>
-                <div className="w-15 flex flex-row justify-start">
+                <div className="flex flex-row justify-start">
                   <input className= "bg-blue-500 hover:bg-blue-400 transition-colors rounded-md px-4 py-2.5 text-stone-50 focus:ring-2 ring-blue-500 mx-1" type="submit" value="SUBMIT"></input>
                 </div>
               </div>
@@ -316,6 +320,11 @@ function App() {
         guesses={guesses[gameMode + cardSet]}
         stats={stats[gameMode+cardSet]}
         newGame={handleGameOverModalNewGame}
+      />
+      <InfoModal
+        isOpen={infoModalIsOpen}
+        handleClose={() => setInfoModalIsOpen(false)}
+        styles={modalStyles} 
       />
       <PreCacheImg
         images={imageArray}
