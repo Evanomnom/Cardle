@@ -1,4 +1,4 @@
-import { StandardCards, WildCards, ClassicCards, WildLegendaryCards } from './/data'
+import { StandardCards, WildCards, ClassicCards, WildLegendaryCards, RandomNums } from './/data'
 
 const getCard = (set) => {
     const rndI = Math.floor(Math.random() * cards[set].length)
@@ -7,7 +7,8 @@ const getCard = (set) => {
 
 const getDailyCard = (set) => {
     const today = new Date();
-    const ind = ((today.getFullYear() * 10000) + (today.getMonth() * 100) + (today.getDate())) % (cards[set].length);
+    const rndNum = RandomNums[(today.getMonth() * 100) + (today.getDate())]['A']
+    const ind = ((today.getFullYear() * 10000) + (today.getMonth() * 100) + (today.getDate()) + rndNum) % (cards[set].length);
     return cards[set][ind]
 }
 

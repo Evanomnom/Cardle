@@ -9,6 +9,7 @@ import Modal from 'react-modal'
 import {SettingsModal} from './components/settingsModal'
 import {GameOverModal} from "./components/gameOverModal"
 import {InfoModal} from "./components/infoModal"
+import {RandomNums} from ".//data"
 import PreCacheImg from 'react-precache-img';
 
 function App() {
@@ -43,7 +44,8 @@ function App() {
 
   const getDailyCard = (set) => {
     const today = new Date();
-    const ind = ((today.getFullYear() * 10000) + (today.getMonth() * 100) + (today.getDate())) % (cards[set].length);
+    const rndNum = RandomNums[(today.getMonth() * 100) + (today.getDate())]['A']
+    const ind = ((today.getFullYear() * 10000) + (today.getMonth() * 100) + (today.getDate()) + rndNum) % (cards[set].length);
     return cards[set][ind]
   }
 
