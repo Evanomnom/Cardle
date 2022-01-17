@@ -275,7 +275,7 @@ function App() {
           ))}
           {(gameState[gameMode + cardSet] === state.playing) &&
             <form onSubmit={e => handleSubmit(e)} className={"p-0 m-0"}>
-              <div className = "flex flex-row items-start justify-center pt-5">
+              <div className = "flex flex-row items-start justify-center pt-5 mb-40">
                 <div className = "w-full flex flex-row">
                   <AutoSuggest name="Card" options={cards[cardSet].map(o => o.name)} value = {currentGuessText} handleChange = {setCurrentGuessText}
                     styles={{
@@ -295,7 +295,7 @@ function App() {
             </form>
             }
           {((gameState[gameMode + cardSet] !== state.playing) && (gameMode !== mode.daily)) &&
-            <button className="bg-blue-500 hover:bg-blue-400 transition-colors rounded-md px-4 py-2.5 text-stone-50 focus:ring-2 ring-blue-500 mt-5" onClick={resetGame}>New Game</button>
+            <button className="bg-blue-500 hover:bg-blue-400 transition-colors rounded-md px-4 py-2.5 text-stone-50 focus:ring-2 ring-blue-500 mt-5 mb-20" onClick={resetGame}>New Game</button>
           }
         </div>
       </div>
