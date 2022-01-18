@@ -3,7 +3,7 @@ import {mode, state, status, set, type, imageArray, initialDates, initialStats, 
 import {useLocalStorage} from './hooks/useLocalStorage'
 import useDidMountEffect from './hooks/useDidMountEffect'
 import {useEffect, useState} from 'react'
-import { AutoSuggest } from 'react-autosuggestions'
+import { AutoSuggest } from './components/autosuggest'
 import Guess from './components/guess'
 import Modal from 'react-modal'
 import {SettingsModal} from './components/settingsModal'
