@@ -31,17 +31,20 @@ function App() {
   const [guessesRemaining, setGuessesRemaining] = useState(gameLength[cardSet])
   const [showAlert, setShowAlert] = useState(false)
 
+  //Alert timeout for "No minion found" message
   useEffect(() => {
     if (showAlert) {
       setTimeout(() => setShowAlert(false), 3000)
     }
   }, [showAlert])
 
+  //Get one random card from the inputted set
   const getCard = (set) => {
     const rndI = Math.floor(Math.random() * cards[set].length)
     return cards[set][rndI]
   }
 
+  //Get the daily card for the inputted set
   const getDailyCard = (set) => {
     const today = new Date();
     const rndNum = RandomNums[(today.getMonth() * 100) + (today.getDate())]['A']
@@ -49,6 +52,7 @@ function App() {
     return cards[set][ind]
   }
 
+  //Add the inputted guess to the guess array for current game mode and set
   const addGuess = () => {
     let currCardGuess = cardGuess[gameMode + cardSet]
     let currCardAnswer = cardAnswer[gameMode + cardSet]
@@ -67,6 +71,7 @@ function App() {
     }
   }
 
+  //Compares guess and answer values for a trait and retuns the appropriate status
   const getAboveBelowStatus = (guessValue, answerValue) => {
     let guessStatus;
     if (guessValue < answerValue) { 
@@ -79,9 +84,11 @@ function App() {
     return guessStatus;
   }
 
+  //Handle submission of card guess
   const handleSubmit = (e) => {
     e.preventDefault();
     let searchedCardArr = getSearchedCard();
+    //Checking if answer is valid to add
     if ((searchedCardArr.length > 0) && (gameState[gameMode + cardSet] === state.playing)){
       setShowAlert(false)
       setCardGuess(prevState => ({...prevState, [gameMode + cardSet]: getSearchedCard()[0]}));
@@ -94,16 +101,19 @@ function App() {
     setCurrentGuessText("")
   }
 
+  //Change to selected game mode
   const changeGameMode = (gameMode) => {
     setGameMode(gameMode);
     setSettingsChanged(true);
   }
 
+  //Change to selected card set
   const changeCardSet = (cardSet) => {
     setCardSet(cardSet);
     setSettingsChanged(true);
   }
 
+  //Reset the game states for new day
   const setDaily = () => {
     setCardAnswer(prevState => ({ ...prevState, [gameMode + cardSet]: getDailyCard(cardSet) }));
     setGameState(prevState => ({ ...prevState, [gameMode + cardSet]: state.playing }));
@@ -112,6 +122,7 @@ function App() {
     setCurrentGuessText("");
   }
 
+  //Check if dailies should be reset after changing card set or game mode
   useEffect(() => { 
     let today = new Date();
     let dailyDate = new Date(dailyDates[cardSet]);
@@ -122,6 +133,7 @@ function App() {
     }
   }, [cardSet, gameMode]);
 
+  //Change number of guesses remaining (used for UI only) after inputting a guess or changing card set/game mode
   useEffect(() => {
     if ([gameMode + cardSet] in guesses) {
       setGuessesRemaining(gameLength[cardSet] - guesses[gameMode + cardSet].length);
@@ -130,12 +142,14 @@ function App() {
     }
   }, [guesses, cardSet, gameMode]);
 
+  //Check if the game has ended only after guesses, card set, or game mode are updated (not on mount)
   useDidMountEffect(() => {
     if (gameState[gameMode+cardSet] === state.playing){
       checkGameOver();
     }
   }, [guesses, cardSet, gameMode]);
 
+  //Add the new guess after the cardGuess is changed (on submit)
   useDidMountEffect(() => {
     if ([gameMode + cardSet] in cardGuess) {
       if ((Object.keys(cardGuess[gameMode + cardSet]).length > 0) && (gameState[gameMode + cardSet] === state.playing)) {
@@ -144,6 +158,7 @@ function App() {
     }
   }, [cardGuess])
 
+  //If game state is updated to win or lose, open the game over modal after 
   useDidMountEffect(() => {
     if (gameState[gameMode + cardSet] === state.won || gameState[gameMode + cardSet] === state.lost){
       setTimeout(() => {
@@ -152,6 +167,7 @@ function App() {
     }
   }, [gameState])
 
+  //Function to reset current guess text if you change settings
   const setupGame = () => {
     if (settingsChanged) { 
       setCurrentGuessText("");
@@ -159,6 +175,7 @@ function App() {
     }
   }
 
+  //Function to reset the game for infinite mode
   const resetGame = () => {
     if (gameMode !== mode.daily){
       setCardAnswer(prevState => ({ ...prevState, [gameMode + cardSet]: getCard(cardSet) }));
@@ -170,6 +187,7 @@ function App() {
     }
   }
 
+  //Function to check for game over; will update stats, game state, and daily dates (for daily)
   const checkGameOver = () => {
     if ([gameMode + cardSet] in guesses && [gameMode + cardSet] in cardGuess && [gameMode + cardSet] in cardAnswer){
       if (gameMode === mode.daily) {
