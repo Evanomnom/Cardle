@@ -22,6 +22,7 @@ export const InfoModal = ({ isOpen, handleClose, styles }) => {
                         <div className="flex flex-col items-center justify-start text-center"><span>▲</span><span>Too Low</span></div>
                         <div className="flex flex-col items-center justify-start text-center"><span>▼</span><span>Too High</span></div>
                     </div>
+                    <div className="text-md text-center pt-3">Card sets are ordered by release date. Core set cards are ordered right below the latest standard set.</div>
                 </div>
                 <div>
                     <div className="text-md text-center">There are two game modes playable on each minion set:</div>

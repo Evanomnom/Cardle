@@ -267,9 +267,9 @@ function App() {
     <div>
       <div className = "bg-stone-800 text-stone-50 font-display text-center flex flex-col min-h-screen items-center">
         <div className="flex flex-row align-center justify-between px-1 pt-3 w-full text-xl lg:text-2xl lg:w-4/6 2xl:w-2/6">
-          <div className="w-9 ml-2"><img src="/icons/menu.png" className="icon" onClick={()=>(setSettingsModalIsOpen(true))}/></div>
+          <div className="w-9 ml-2"><img src="/icons/menu.png" alt="settings" className="icon" onClick={()=>(setSettingsModalIsOpen(true))}/></div>
           <div className="text-3xl xl:text-4xl">CARDLE</div>
-          <div className="w-9 mr-2"><img src="/icons/info.png" className="icon" onClick={() => (setInfoModalIsOpen(true))}/></div>
+          <div className="w-9 mr-2"><img src="/icons/info.png" alt="info" className="icon" onClick={() => (setInfoModalIsOpen(true))}/></div>
         </div>
         <div className="text-md">Guess the Hearthstone minion!</div>
         <div className="grid grid-cols-3 pt-2 gap-4">
