@@ -15,7 +15,6 @@
     "react-modal": "^3.14.4",
     "react-precache-img": "^2.0.5",
     "react-scripts": "5.0.0",
-    "react-search-autocomplete": "^5.4.4",
     "universal-cookie": "^4.0.4",
     "web-vitals": "^2.1.3"
   },
